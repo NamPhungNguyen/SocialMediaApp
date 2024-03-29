@@ -6,17 +6,12 @@ import android.os.Bundle;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -24,8 +19,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.regex.Pattern;
+import java.util.HashMap;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -103,9 +100,31 @@ public class RegisterActivity extends AppCompatActivity {
                         if (task.isSuccessful()){
                             // sign in success, dismiss dialog and start register activity
                             progressDialog.dismiss();
+
+
                             FirebaseUser user = mAuth.getCurrentUser();
+                            //get user email and uid from auth
+                            String email = user.getEmail();
+                            String uid = user.getUid();
+                            //when user is registered store user info in firebase realtime database too
+                            // using HashMap
+                            HashMap<Object, String> hashMap = new HashMap<>();
+                            // put info in hasmap
+                            hashMap.put("email", email);
+                            hashMap.put("uid", uid);
+                            hashMap.put("name", ""); //will add later (e.g edit profile)
+                            hashMap.put("phone", "");
+                            hashMap.put("image", "");
+                            //firebase database instance
+                            FirebaseDatabase database = FirebaseDatabase.getInstance();
+                            DatabaseReference reference = database.getReference("Users");
+                            //put data within hashmap in database
+                            reference.child(uid).setValue(hashMap);
+
+
+
                             Toast.makeText(RegisterActivity.this, "Registered...\n"+user.getEmail(), Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(RegisterActivity.this, ProfileActivity.class));
+                            startActivity(new Intent(RegisterActivity.this, DashboardActivity.class));
                             finish();
                         }else {
                             progressDialog.dismiss();
